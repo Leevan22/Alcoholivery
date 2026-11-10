@@ -136,7 +136,13 @@
             <a class="navbar-brand fs-4" href="{% url 'catalogo' %}">🍺 Alcohol<span>ivery</span></a>
             {% if user.is_authenticated %}
                 <div class="d-flex align-items-center gap-2">
-                    <span class="text-slate-300 me-2 text-white-50 small d-none d-md-inline">Hola, <strong>{{ user.username }}</strong></span>
+                    <span class="text-white-50 small me-2 d-none d-md-inline">Hola, <strong>{{ user.username }}</strong></span>
+                    
+                    <!-- Botón exclusivo para Administradores -->
+                    {% if user.is_staff %}
+                        <a href="{% url 'admin_productos' %}" class="btn btn-warning btn-sm fw-bold me-1">⚙️ Gestión Admin</a>
+                    {% endif %}
+
                     <a href="{% url 'catalogo' %}" class="btn btn-outline-custom btn-sm text-white border-secondary">Catálogo</a>
                     <a href="{% url 'ver_carro' %}" class="btn btn-accent btn-sm">
                         🛒 Carro <span class="badge bg-dark text-white rounded-pill ms-1">{{ user.carro.obtener_total_items|default:0 }}</span>

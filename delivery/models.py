@@ -7,6 +7,7 @@ class PerfilUsuario(models.Model):
     rut = models.CharField(max_length=12, unique=True)
     fecha_nacimiento = models.DateField()
     direccion = models.CharField(max_length=200)
+    acepto_declaracion = models.BooleanField(default=False)
 
     def es_mayor_de_edad(self):
         hoy = date.today()
@@ -62,6 +63,10 @@ class Pedido(models.Model):
         ('CREDITO', 'Tarjeta de Crédito'),
         ('TRANSFERENCIA', 'Transferencia Bancaria'),
     ]
+    METODOS_VERIFICACION = [
+        ('PRESENCIAL', 'Mostrar Carnet de Identidad físico al repartidor'),
+        ('DIGITAL', 'Subir foto del Carnet de Identidad a la plataforma'),
+    ]
     ESTADOS = [
         ('PENDIENTE', 'Pendiente'),
         ('EN_CAMINO', 'En camino'),
@@ -73,6 +78,8 @@ class Pedido(models.Model):
     fecha_hora = models.DateTimeField(auto_now_add=True)
     direccion_entrega = models.CharField(max_length=200)
     metodo_pago = models.CharField(max_length=20, choices=METODOS_PAGO, default='DEBITO')
+    metodo_verificacion = models.CharField(max_length=20, choices=METODOS_VERIFICACION, default='PRESENCIAL')
+    imagen_carnet = models.ImageField(upload_to='carnets/', blank=True, null=True)
     subtotal = models.IntegerField(default=0)
     costo_envio = models.IntegerField(default=2000)
     total_pagar = models.IntegerField(default=0)

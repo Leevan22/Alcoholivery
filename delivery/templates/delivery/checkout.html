@@ -1,13 +1,23 @@
 {% extends 'delivery/base.html' %}
 {% block content %}
-<h2 class="mb-4">💳 Confirmación de Pago y Envío</h2>
+<h2 class="mb-4 fw-bold">💳 Confirmación de Pago y Verificación de Edad</h2>
+
+{% if form.non_field_errors %}
+    <div class="alert alert-danger mb-4">
+        {% for error in form.non_field_errors %}
+            {{ error }}
+        {% endfor %}
+    </div>
+{% endif %}
+
 <div class="row">
     <div class="col-md-7">
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-body">
-                <h4 class="card-title fw-bold mb-3">Datos de Despacho y Pago</h4>
-                <form method="post">
+        <div class="card shadow-sm border-0 rounded-4 mb-4">
+            <div class="card-body p-4">
+                <h4 class="card-title fw-bold mb-3">1. Datos de Despacho y Pago</h4>
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
+                    
                     <div class="mb-3">
                         <label class="form-label fw-bold">{{ form.direccion_entrega.label }}</label>
                         {{ form.direccion_entrega }}
@@ -16,18 +26,47 @@
                         <label class="form-label fw-bold">{{ form.metodo_pago.label }}</label>
                         {{ form.metodo_pago }}
                     </div>
-                    <button type="submit" class="btn btn-success btn-lg w-100 fw-bold">Confirmar y Pagar ${{ total }}</button>
+
+                    <hr class="my-4">
+
+                    <h4 class="card-title fw-bold mb-2">2. Verificación Ley de Alcoholes (N° 19.925)</h4>
+                    <p class="text-muted small mb-3">
+                        Para recibir bebidas alcohólicas debe comprobarse la mayoría de edad del comprador.
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold mb-2">Seleccione método de verificación:</label>
+                        {% for radio in form.metodo_verificacion %}
+                            <div class="form-check mb-2">
+                                {{ radio.tag }}
+                                <label class="form-check-label fw-medium" for="{{ radio.id_for_label }}">
+                                    {{ radio.choice_label }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-4 p-3 bg-light rounded-3">
+                        <label class="form-label fw-bold">{{ form.imagen_carnet.label }}</label>
+                        {{ form.imagen_carnet }}
+                        <small class="text-muted d-block mt-1">
+                            Las imágenes subidas serán resguardadas confidencialmente bajo la Ley N° 19.628 y usadas exclusivamente para validación de edad.
+                        </small>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-lg w-100 fw-bold py-3 fs-5">Confirmar y Pagar ${{ total }}</button>
                 </form>
             </div>
         </div>
     </div>
+
     <div class="col-md-5">
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <h4 class="card-title fw-bold mb-3">Detalle del Pedido</h4>
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                <h4 class="card-title fw-bold mb-3">Resumen del Pedido</h4>
                 <ul class="list-group list-group-flush mb-3">
                     {% for item in items %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 bg-transparent">
                         <div>
                             <h6 class="mb-0 fw-bold">{{ item.producto.nombre }}</h6>
                             <small class="text-muted">Cantidad: {{ item.cantidad }} x ${{ item.producto.precio }}</small>

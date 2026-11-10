@@ -5,6 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import RegistroForm, CheckoutForm
 from .models import PerfilUsuario, Producto, Pedido, CarroCompras, ItemCarro, DetallePedido
+from django.contrib.admin.views.decorators import staff_member_required
+from .forms import RegistroForm, CheckoutForm, ProductoForm
 
 def registro_view(request):
     if request.method == 'POST':
@@ -18,7 +20,8 @@ def registro_view(request):
                 user=user,
                 rut=form.cleaned_data['rut'],
                 fecha_nacimiento=form.cleaned_data['fecha_nacimiento'],
-                direccion=form.cleaned_data['direccion']
+                direccion=form.cleaned_data['direccion'],
+                acepto_declaracion=form.cleaned_data['acepto_declaracion']
             )
 
             CarroCompras.objects.create(cliente=user)
@@ -46,13 +49,15 @@ def logout_view(request):
 
 @login_required
 def catalogo_view(request):
-    perfil = request.user.perfil
-    if not perfil.es_mayor_de_edad():
-        messages.error(request, "Acceso restringido solo para mayores de 18 años.")
-        return redirect('logout')
+    # Si el usuario es administrador, no requiere perfil de cliente
+    if not request.user.is_staff:
+        perfil = getattr(request.user, 'perfil', None)
+        if not perfil or not perfil.es_mayor_de_edad():
+            messages.error(request, "Acceso restringido solo para mayores de 18 años.")
+            return redirect('logout')
 
     productos = Producto.objects.filter(disponible=True)
-    return render(request, 'delivery/catalogo.html', {'productos': productos, 'perfil': perfil})
+    return render(request, 'delivery/catalogo.html', {'productos': productos})
 
 @login_required
 def agregar_al_carro(request, producto_id):
@@ -112,23 +117,25 @@ def checkout_view(request):
     total = subtotal + costo_envio
 
     if request.method == 'POST':
-        form = CheckoutForm(request.POST)
+        form = CheckoutForm(request.POST, request.FILES)
         if form.is_valid():
             direccion = form.cleaned_data['direccion_entrega']
             metodo = form.cleaned_data['metodo_pago']
+            verificacion = form.cleaned_data['metodo_verificacion']
+            imagen_carnet = form.cleaned_data.get('imagen_carnet')
 
-            # Crear el pedido principal
             pedido = Pedido.objects.create(
                 cliente=request.user,
                 direccion_entrega=direccion,
                 metodo_pago=metodo,
+                metodo_verificacion=verificacion,
+                imagen_carnet=imagen_carnet,
                 subtotal=subtotal,
                 costo_envio=costo_envio,
                 total_pagar=total,
                 estado_despacho='PENDIENTE'
             )
 
-            # Transferir items del carro al detalle del pedido y descontar stock
             for item in items:
                 DetallePedido.objects.create(
                     pedido=pedido,
@@ -140,15 +147,14 @@ def checkout_view(request):
                 item.producto.stock_actual -= item.cantidad
                 item.producto.save()
 
-            # Vaciar el carro de compras
             carro.items.all().delete()
 
             messages.success(request, f"¡Pedido #{pedido.id} realizado exitosamente! En breve será despachado.")
             return redirect('mis_pedidos')
     else:
-        # Pre-llenar la dirección con la guardada en el perfil del cliente
-        direccion_inicial = request.user.perfil.direccion
-        form = CheckoutForm(initial={'direccion_entrega': direccion_inicial})
+        perfil = getattr(request.user, 'perfil', None)
+        direccion_inicial = perfil.direccion if perfil else 'Dirección de administración'
+        form = CheckoutForm(initial={'direccion_entrega': direccion_inicial, 'metodo_verificacion': 'PRESENCIAL'})
 
     return render(request, 'delivery/checkout.html', {
         'form': form,
@@ -167,7 +173,6 @@ def mis_pedidos_view(request):
 def cancelar_pedido_view(request, pedido_id):
     pedido = get_object_or_404(Pedido, id=pedido_id, cliente=request.user)
 
-    # Si el pedido aún está PENDIENTE, devolvemos las unidades al stock
     if pedido.estado_despacho == 'PENDIENTE':
         for detalle in pedido.detalles.all():
             producto = detalle.producto
@@ -177,6 +182,24 @@ def cancelar_pedido_view(request, pedido_id):
     else:
         messages.info(request, f"Pedido #{pedido.id} eliminado de tu historial.")
 
-    # Eliminar el registro del pedido de la base de datos
     pedido.delete()
     return redirect('mis_pedidos')
+
+
+@staff_member_required(login_url='login')
+def admin_productos_view(request):
+    productos = Producto.objects.all().order_by('-id')
+    
+    if request.method == 'POST':
+        form = ProductoForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "¡Producto publicado y añadido al catálogo con éxito!")
+            return redirect('admin_productos')
+    else:
+        form = ProductoForm()
+
+    return render(request, 'delivery/admin_productos.html', {
+        'form': form,
+        'productos': productos
+    })

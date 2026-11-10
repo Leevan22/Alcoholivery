@@ -1,14 +1,83 @@
 {% extends 'delivery/base.html' %}
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h3 class="card-title text-center mb-3">Registro (+18 Años)</h3>
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                <h3 class="card-title text-center fw-bold mb-4">Registro de Cliente (+18)</h3>
+
+                {% if form.errors %}
+                    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+                        <h5 class="fw-bold mb-1">⚠️ No se pudo completar el registro:</h5>
+                        <ul class="mb-0 ps-3">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endif %}
+
                 <form method="post">
                     {% csrf_token %}
-                    {{ form.as_p }}
-                    <button type="submit" class="btn btn-success w-100">Crear Cuenta</button>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Usuario</label>
+                        {{ form.username }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Correo Electrónico</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Contraseña</label>
+                        {{ form.password }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">RUT</label>
+                            {{ form.rut }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Fecha de Nacimiento</label>
+                            {{ form.fecha_nacimiento }}
+                            {% if form.fecha_nacimiento.errors %}
+                                <div class="text-danger small mt-1 fw-bold">
+                                    {{ form.fecha_nacimiento.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Dirección de Entrega</label>
+                        {{ form.direccion }}
+                    </div>
+
+                    <div class="card bg-light border-0 p-3 mb-4 rounded-3">
+                        <div class="form-check">
+                            {{ form.acepto_declaracion }}
+                            <label class="form-check-label fw-bold text-dark" for="id_acepto_declaracion" style="cursor: pointer;">
+                                {{ form.acepto_declaracion.label }}
+                            </label>
+                            <small class="text-muted d-block mt-2">
+                                {{ form.acepto_declaracion.help_text }}
+                            </small>
+                        </div>
+                        {% if form.acepto_declaracion.errors %}
+                            <div class="text-danger small mt-2 fw-bold">
+                                ⚠️ {{ form.acepto_declaracion.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-accent w-100 py-3 fw-bold fs-5">Crear Cuenta Verificada</button>
                 </form>
             </div>
         </div>

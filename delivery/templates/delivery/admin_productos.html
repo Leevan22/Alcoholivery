@@ -1,0 +1,104 @@
+{% extends 'delivery/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">⚙️ Panel de Gestión de Productos (Solo Admin)</h2>
+    <a href="/admin/" target="_blank" class="btn btn-outline-dark btn-sm">Ir a Django Admin Django ➔</a>
+</div>
+
+<div class="row">
+    <!-- Formulario para agregar nuevo producto -->
+    <div class="col-md-5 mb-4">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                <h4 class="card-title fw-bold mb-3">Agregar Nuevo Producto</h4>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ form.nombre.label }}</label>
+                        {{ form.nombre }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ form.categoria.label }}</label>
+                        {{ form.categoria }}
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-semibold">{{ form.precio.label }}</label>
+                            {{ form.precio }}
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-semibold">{{ form.stock_actual.label }}</label>
+                            {{ form.stock_actual }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ form.imagen.label }}</label>
+                        {{ form.imagen }}
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        {{ form.requiere_mayor_edad }}
+                        <label class="form-check-label fw-medium">{{ form.requiere_mayor_edad.label }}</label>
+                    </div>
+                    <div class="form-check mb-4">
+                        {{ form.disponible }}
+                        <label class="form-check-label fw-medium">{{ form.disponible.label }}</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 fw-bold py-2">Guardar Producto</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de productos existentes -->
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                <h4 class="card-title fw-bold mb-3">Productos en Inventario</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Imagen</th>
+                                <th>Nombre</th>
+                                <th>Precio</th>
+                                <th>Stock</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prod in productos %}
+                            <tr>
+                                <td>
+                                    {% if prod.imagen %}
+                                        <img src="{{ prod.imagen.url }}" width="40" height="40" style="object-fit: contain;">
+                                    {% else %}
+                                        <span class="badge bg-secondary">Sin foto</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold">{{ prod.nombre }}</td>
+                                <td>${{ prod.precio }}</td>
+                                <td>{{ prod.stock_actual }} u.</td>
+                                <td>
+                                    {% if prod.disponible %}
+                                        <span class="badge bg-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Oculto</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">No hay productos registrados.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
