@@ -1,0 +1,68 @@
+{% extends 'delivery/base.html' %}
+{% block content %}
+<h2 class="mb-4">🛒 Mi Carro de Compras</h2>
+{% if items %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body p-0">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Producto</th>
+                            <th>Precio Unitario</th>
+                            <th>Cantidad</th>
+                            <th>Subtotal</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td class="d-flex align-items-center gap-3">
+                                {% if item.producto.imagen %}
+                                    <img src="{{ item.producto.imagen.url }}" width="50" height="50" style="object-fit: contain;">
+                                {% endif %}
+                                <span class="fw-bold">{{ item.producto.nombre }}</span>
+                            </td>
+                            <td>${{ item.producto.precio }}</td>
+                            <td>{{ item.cantidad }}</td>
+                            <td class="fw-bold">${{ item.obtener_subtotal }}</td>
+                            <td>
+                                <a href="{% url 'eliminar_del_carro' item.id %}" class="btn btn-outline-danger btn-sm">Quitar</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h4 class="card-title fw-bold mb-3">Resumen</h4>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Subtotal Productos:</span>
+                    <span class="fw-bold">${{ subtotal }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Costo Envío:</span>
+                    <span>${{ costo_envio }}</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between mb-4 fs-5 fw-bold text-success">
+                    <span>Total Est.:</span>
+                    <span>${{ total }}</span>
+                </div>
+                <a href="{% url 'checkout' %}" class="btn btn-warning w-100 btn-lg fw-bold">Proceder al Pago ➔</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info">
+    Tu carro de compras está vacío. <a href="{% url 'catalogo' %}">Explora nuestro catálogo</a>.
+</div>
+{% endif %}
+{% endblock %}

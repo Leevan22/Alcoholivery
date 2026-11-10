@@ -1,0 +1,56 @@
+{% extends 'delivery/base.html' %}
+{% block content %}
+<h2 class="mb-4">💳 Confirmación de Pago y Envío</h2>
+<div class="row">
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <h4 class="card-title fw-bold mb-3">Datos de Despacho y Pago</h4>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ form.direccion_entrega.label }}</label>
+                        {{ form.direccion_entrega }}
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">{{ form.metodo_pago.label }}</label>
+                        {{ form.metodo_pago }}
+                    </div>
+                    <button type="submit" class="btn btn-success btn-lg w-100 fw-bold">Confirmar y Pagar ${{ total }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h4 class="card-title fw-bold mb-3">Detalle del Pedido</h4>
+                <ul class="list-group list-group-flush mb-3">
+                    {% for item in items %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ item.producto.nombre }}</h6>
+                            <small class="text-muted">Cantidad: {{ item.cantidad }} x ${{ item.producto.precio }}</small>
+                        </div>
+                        <span class="fw-bold">${{ item.obtener_subtotal }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Subtotal:</span>
+                    <span class="fw-bold">${{ subtotal }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Costo de Envío:</span>
+                    <span>${{ costo_envio }}</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between fs-4 fw-bold text-success">
+                    <span>Total a Pagar:</span>
+                    <span>${{ total }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
